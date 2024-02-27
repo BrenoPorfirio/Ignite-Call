@@ -1,6 +1,6 @@
-import { prisma } from '@/src/lib/prisma'
 import dayjs from 'dayjs'
 import { NextApiRequest, NextApiResponse } from 'next'
+import { prisma } from '../../../../lib/prisma'
 
 export default async function handler(
   req: NextApiRequest,
@@ -70,9 +70,13 @@ export default async function handler(
   })
 
   const availableTimes = possibleTimes.filter((time) => {
-    return !blockedTimes.some(
-      (blockedTimes) => blockedTimes.date.getHours() === time,
+    const isTimeBlocked = blockedTimes.some(
+      (blockedTime) => blockedTime.date.getHours() === time,
     )
+
+    const isTimeInPast = referenceDate.set('hour', time).isBefore(new Date())
+
+    return !isTimeBlocked && !isTimeInPast
   })
 
   return res.json({ possibleTimes, availableTimes })
