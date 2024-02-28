@@ -43,6 +43,7 @@ export function CalendarStep() {
           date: selectedDateWithoutTime,
         },
       })
+
       return response.data
     },
     {
