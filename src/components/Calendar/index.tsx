@@ -153,7 +153,6 @@ export function Calendar({ selectedDate, onDateSelected }: CalendarProps) {
         <CalendarTitle>
           {currentMonth} <span>{currentYear}</span>
         </CalendarTitle>
-
         <CalendarActions>
           <button onClick={handlePreviousMonth} title="Previous month">
             <CaretLeft />
