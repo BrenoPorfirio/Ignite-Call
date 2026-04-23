@@ -27,8 +27,6 @@ Esse projeto foi desenvolvido com as seguintes tecnologias:
 
 ## 💻 Projeto
 
-
-
 ## :memo: Execução
 
 Siga abaixo os seguinte passos para execução do código:
