@@ -1,8 +1,7 @@
 import { Heading, Text } from "@ignite-ui/react";
 import Image from "next/image";
 import { Container, Hero, Preview } from "./styles";
-
-import previewImage from "../../assets/app-preview.png";
+import previewImage from "../../../public/app-preview.png";
 import { ClaimUsernameForm } from "./components/ClaimUsernameForm";
 import { NextSeo } from "next-seo";
 
@@ -27,6 +26,7 @@ export default function Home() {
         <Preview>
           <Image
             src={previewImage}
+            width={827}
             height={400}
             quality={100}
             priority

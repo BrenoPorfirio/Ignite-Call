@@ -3,6 +3,7 @@
 const nextConfig = {
   reactStrictMode: true,
   pageExtensions: ["page.tsx", "api.ts", "api.tsx"],
+  basePath: "/Ignite-Call",
   output: "export",
   images: {
     unoptimized: true,
