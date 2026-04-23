@@ -1,77 +1,75 @@
-import { Button, Heading, MultiStep, Text } from '@ignite-ui/react'
-import { Container, Header } from '../styles'
-import { ArrowRight, Check } from 'phosphor-react'
-import { AuthError, ConnectBox, ConnectItem } from './styles'
-import { signIn, useSession } from 'next-auth/react'
-import { useRouter } from 'next/router'
-import { NextSeo } from 'next-seo'
+import { Button, Heading, MultiStep, Text } from "@ignite-ui/react";
+import { Container, Header } from "../styles";
+import { ArrowRight, Check } from "phosphor-react";
+import { ConnectBox, ConnectItem } from "./styles";
+import { useRouter } from "next/router";
+import { NextSeo } from "next-seo";
+import { useState, useEffect } from "react";
+import { useGoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 
-export default function ConnectCalendar() {
-  const session = useSession()
-  const router = useRouter()
+function ConnectCalendarContent() {
+  const router = useRouter();
+  const [isConnected, setIsConnected] = useState(false);
 
-  const hasAuthError = !!router.query.error
-  const isSignedIn = session.status === 'authenticated'
+  useEffect(() => {
+    const savedToken = localStorage.getItem("@ignitecall:google-token");
+    if (savedToken) setIsConnected(true);
+  }, []);
 
-  async function handleConnectCalendar() {
-    await signIn('google')
-  }
+  const login = useGoogleLogin({
+    onSuccess: (tokenResponse) => {
+      localStorage.setItem(
+        "@ignitecall:google-token",
+        tokenResponse.access_token,
+      );
+      localStorage.setItem("@ignitecall:google-connected", "true");
+      setIsConnected(true);
+    },
+    scope: "https://www.googleapis.com/auth/calendar.readonly",
+  });
 
   async function handleNavigateToNextStep() {
-    await router.push('/register/time-intervals')
+    await router.push("/register/time-intervals");
   }
 
   return (
     <>
       <NextSeo title="Conecte sua agenda do Google | Ignite Call" noindex />
-
       <Container>
         <Header>
           <Heading as="strong">Conecte sua agenda!</Heading>
-          <Text>
-            Conecte seu calendário para verificar automaticamente as horas
-            ocupadas e os novos eventos à medida em que são agendados.
-          </Text>
+          <Text>Conecte seu calendário para verificar as horas ocupadas.</Text>
           <MultiStep size={4} currentStep={2} />
         </Header>
 
         <ConnectBox>
           <ConnectItem>
             <Text>Google Calendar</Text>
-            {isSignedIn ? (
+            {isConnected ? (
               <Button size="sm" disabled>
-                Conectado
-                <Check />
+                {" "}
+                Conectado <Check />{" "}
               </Button>
             ) : (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleConnectCalendar}
-              >
-                Conectar
-                <ArrowRight />
+              <Button variant="secondary" size="sm" onClick={() => login()}>
+                Conectar <ArrowRight />
               </Button>
             )}
           </ConnectItem>
 
-          {hasAuthError && (
-            <AuthError size="sm">
-              Falha ao se conectar ao Google, verifique se foi habilitado todas
-              as permissões de acesso ao Google Calendar
-            </AuthError>
-          )}
-
-          <Button
-            onClick={handleNavigateToNextStep}
-            type="submit"
-            disabled={!isSignedIn}
-          >
-            Próximo passo
-            <ArrowRight />
+          <Button onClick={handleNavigateToNextStep} disabled={!isConnected}>
+            Próximo passo <ArrowRight />
           </Button>
         </ConnectBox>
       </Container>
     </>
-  )
+  );
+}
+
+export default function ConnectCalendar() {
+  return (
+    <GoogleOAuthProvider clientId="697476511265-eq6hhc3rg06vd93vuhjpq5vk7blu3ps8.apps.googleusercontent.com">
+      <ConnectCalendarContent />
+    </GoogleOAuthProvider>
+  );
 }

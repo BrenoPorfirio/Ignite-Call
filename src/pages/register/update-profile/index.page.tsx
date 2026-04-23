@@ -1,4 +1,4 @@
-import { zodResolver } from '@hookform/resolvers/zod'
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Avatar,
   Button,
@@ -6,25 +6,21 @@ import {
   MultiStep,
   Text,
   TextArea,
-} from '@ignite-ui/react'
-import { GetServerSideProps } from 'next'
-import { unstable_getServerSession } from 'next-auth'
-import { useSession } from 'next-auth/react'
-import { ArrowRight } from 'phosphor-react'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { api } from '../../../lib/axios'
-import { buildNextAuthOptions } from '../../api/auth/[...nextauth].api'
-import { Container, Header } from '../styles'
-import { FormAnnotation, ProfileBox } from './styles'
-import { useRouter } from 'next/router'
-import { NextSeo } from 'next-seo'
+} from "@ignite-ui/react";
+import { ArrowRight } from "phosphor-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Container, Header } from "../styles";
+import { FormAnnotation, ProfileBox } from "./styles";
+import { useRouter } from "next/router";
+import { NextSeo } from "next-seo";
+import { useEffect, useState } from "react";
 
 const updateProfileSchema = z.object({
   bio: z.string(),
-})
+});
 
-type UpdateProfileData = z.infer<typeof updateProfileSchema>
+type UpdateProfileData = z.infer<typeof updateProfileSchema>;
 
 export default function UpdateProfile() {
   const {
@@ -33,17 +29,30 @@ export default function UpdateProfile() {
     formState: { isSubmitting },
   } = useForm<UpdateProfileData>({
     resolver: zodResolver(updateProfileSchema),
-  })
+  });
 
-  const session = useSession()
-  const router = useRouter()
+  const router = useRouter();
+  const [userData, setUserData] = useState({
+    name: "",
+    avatar_url: "",
+    username: "",
+  });
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem("@ignitecall:user-data");
+    if (savedUser) {
+      setUserData(JSON.parse(savedUser));
+    }
+  }, []);
 
   async function handleUpdateProfile(data: UpdateProfileData) {
-    await api.put('/users/profile', {
+    const updatedData = {
+      ...userData,
       bio: data.bio,
-    })
+    };
+    localStorage.setItem("@ignitecall:user-data", JSON.stringify(updatedData));
 
-    await router.push(`/schedule/${session.data?.user.username}`)
+    await router.push(`/schedule/${userData.username || "usuario"}`);
   }
 
   return (
@@ -52,30 +61,22 @@ export default function UpdateProfile() {
 
       <Container>
         <Header>
-          <Heading as="strong">Bem-vindo ao Ignite Call!</Heading>
-          <Text>
-            Precisamos de algumas informações para criar seu perfil! Ah, você
-            pode editar essas informações depois.
-          </Text>
-
+          <Heading as="strong">Quase lá!</Heading>
+          <Text>Fale um pouco sobre você para finalizar seu perfil.</Text>
           <MultiStep size={4} currentStep={4} />
         </Header>
 
         <ProfileBox as="form" onSubmit={handleSubmit(handleUpdateProfile)}>
           <label>
             <Text>Foto de perfil</Text>
-            <Avatar
-              src={session.data?.user.avatar_url}
-              referrerPolicy="no-referrer"
-              alt={session.data?.user.name}
-            />
+            <Avatar src={userData.avatar_url} alt={userData.name} />
           </label>
 
           <label>
             <Text size="sm">Sobre você</Text>
-            <TextArea {...register('bio')} />
+            <TextArea {...register("bio")} />
             <FormAnnotation size="sm">
-              Fale um pouco sobre você. Isto será exibido em sua página pessoal.
+              Isto será exibido em sua página pessoal.
             </FormAnnotation>
           </label>
 
@@ -86,19 +87,5 @@ export default function UpdateProfile() {
         </ProfileBox>
       </Container>
     </>
-  )
-}
-
-export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
-  const session = await unstable_getServerSession(
-    req,
-    res,
-    buildNextAuthOptions(req, res),
-  )
-
-  return {
-    props: {
-      session,
-    },
-  }
+  );
 }

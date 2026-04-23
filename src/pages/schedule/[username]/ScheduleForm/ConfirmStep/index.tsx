@@ -1,28 +1,26 @@
-import { Button, Text, TextArea, TextInput } from '@ignite-ui/react'
-import { ConfirmForm, FormActions, FormError, FormHeader } from './styles'
-import { CalendarBlank, Clock } from 'phosphor-react'
-import { z } from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import dayjs from 'dayjs'
-import { api } from '@/src/lib/axios'
-import { useRouter } from 'next/router'
+import { Button, Text, TextArea, TextInput } from "@ignite-ui/react";
+import { ConfirmForm, FormActions, FormError, FormHeader } from "./styles";
+import { CalendarBlank, Clock } from "phosphor-react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import dayjs from "dayjs";
+import { useRouter } from "next/router";
+import { toast } from "sonner";
 
 const confirmFormSchema = z.object({
   name: z
     .string()
-    .min(3, { message: 'O nome precisa de no minímo 3 caracteres' }),
-  email: z
-    .string()
-    .email({ message: 'O nome precisa de no minímo 3 caracteres' }),
+    .min(3, { message: "O nome precisa de no mínimo 3 caracteres" }),
+  email: z.string().email({ message: "Digite um e-mail válido" }),
   observations: z.string().nullable(),
-})
+});
 
-type ConfirmFormData = z.infer<typeof confirmFormSchema>
+type ConfirmFormData = z.infer<typeof confirmFormSchema>;
 
 interface ConfirmStepProps {
-  schedulingDate: Date
-  onCancelConfirmation: () => void
+  schedulingDate: Date;
+  onCancelConfirmation: () => void;
 }
 
 export function ConfirmStep({
@@ -35,27 +33,30 @@ export function ConfirmStep({
     formState: { isSubmitting, errors },
   } = useForm<ConfirmFormData>({
     resolver: zodResolver(confirmFormSchema),
-  })
+  });
 
-  const router = useRouter()
-  const username = String(router.query.username)
+  const router = useRouter();
+  const username = String(router.query.username);
 
+  // MANTEMOS APENAS ESTA FUNÇÃO
   async function handleConfirmScheduling(data: ConfirmFormData) {
-    const { name, email, observations } = data
+    try {
+      // Simula o tempo de resposta do servidor
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    await api.post(`/users/${username}/schedule`, {
-      name,
-      email,
-      observations,
-      date: schedulingDate,
-    })
+      toast.success("Agendamento confirmado!", {
+        description: `Sua reunião com ${username} foi marcada para ${describedDate} às ${describedTime}.`,
+      });
 
-    onCancelConfirmation()
+      // Aguarda um pouco para o usuário ler o toast antes de fechar o modal
+      onCancelConfirmation();
+    } catch (error) {
+      toast.error("Erro ao agendar. Tente novamente.");
+    }
   }
 
-  const describedDate = dayjs(schedulingDate).format('DD[ de ]MMMM[ de ]YYYY')
-
-  const describedTime = dayjs(schedulingDate).format('HH:mm[h]')
+  const describedDate = dayjs(schedulingDate).format("DD[ de ]MMMM[ de ]YYYY");
+  const describedTime = dayjs(schedulingDate).format("HH:mm[h]");
 
   return (
     <ConfirmForm as="form" onSubmit={handleSubmit(handleConfirmScheduling)}>
@@ -69,9 +70,14 @@ export function ConfirmStep({
           {describedTime}
         </Text>
       </FormHeader>
+
       <label>
         <Text size="sm">Nome completo</Text>
-        <TextInput placeholder="Seu nome" {...register('name')} />
+        <TextInput
+          placeholder="Seu nome"
+          {...register("name")}
+          crossOrigin=""
+        />
         {errors.name && <FormError size="sm">{errors.name.message}</FormError>}
       </label>
 
@@ -80,7 +86,8 @@ export function ConfirmStep({
         <TextInput
           type="email"
           placeholder="exemplo@gmail.com"
-          {...register('email')}
+          {...register("email")}
+          crossOrigin=""
         />
         {errors.email && (
           <FormError size="sm">{errors.email.message}</FormError>
@@ -89,7 +96,7 @@ export function ConfirmStep({
 
       <label>
         <Text size="sm">Observações</Text>
-        <TextArea {...register('observations')} />
+        <TextArea {...register("observations")} />
       </label>
 
       <FormActions>
@@ -101,5 +108,5 @@ export function ConfirmStep({
         </Button>
       </FormActions>
     </ConfirmForm>
-  )
+  );
 }
